@@ -1,6 +1,6 @@
 import unittest
-from test.config.data_manager_config_test import config
-from geobricks_data_manager.core.data_manager_core import MetadataManager
+from test.config.config_test import config
+from geobricks_data_manager.core.data_manager_core import DataManager
 
 metadata_publish = {
     "uid": "fenix|layer_test",
@@ -17,8 +17,6 @@ metadata_publish = {
 
 class GeobricksTest(unittest.TestCase):
 
-    def test_publish_metdata(self):
-        metadata_manager = MetadataManager(config)
-        result = metadata_manager.publish_metadata(metadata_publish)
-        self.assertEqual(result['uid'], metadata_publish['uid'])
+    def test_publish_coveragestore(self):
+        print "here"
 
