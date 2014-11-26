@@ -85,6 +85,12 @@ class DataManager():
             log.error(e)
             self.rollback_coveragestore()
 
+
+    def publish_codelist(self):
+        # if a code doesn't exist publish a new code associate to the codelist (TODO: How to hanglde the labels?)
+        log.warn('TODO Implement it for "meSpatialRepresentation":{"processing": {"idCodeList": "FENIX_GeographicalProcessing", "version" : "1.0", "codes": [{"code": "AVG_MONTHLY"}]}')
+        log.warn('TODO Implement it for "meContent":{"resourceRepresentationType":"geographic","seCoverage":{"coverageSectors":{"idCodeList":"FENIX_GeographicalSectors","version":"1.0","codes":[{"code":"MODIS_LAND_COVER"}]}}')
+
     def publish_featuretype(self, data):
         print "publish_featuretype"
 
