@@ -72,10 +72,12 @@ class DataManager():
             if publish_metadata is True:
                 log.info(metadata_def)
                 self.metadata_manager.publish_metadata(metadata_def, overwrite)
+                log.info("Metadata published")
 
             # publish table on geoserver cluster
             if publish_on_geoserver is True:
                 self.geoserver_manager.publish_coveragestore(file_path, geoserver_def, overwrite)
+                log.info("Geoserver published")
 
             # remove files and folder of the shapefile
             if file_path is not None and remove_file:
@@ -90,6 +92,31 @@ class DataManager():
         # if a code doesn't exist publish a new code associate to the codelist (TODO: How to hanglde the labels?)
         log.warn('TODO Implement it for "meSpatialRepresentation":{"processing": {"idCodeList": "FENIX_GeographicalProcessing", "version" : "1.0", "codes": [{"code": "AVG_MONTHLY"}]}')
         log.warn('TODO Implement it for "meContent":{"resourceRepresentationType":"geographic","seCoverage":{"coverageSectors":{"idCodeList":"FENIX_GeographicalSectors","version":"1.0","codes":[{"code":"MODIS_LAND_COVER"}]}}')
+
+
+    def delete(self, uid, type, delete_on_geoserver=True, delete_metadata=True):
+        log.warn("To implement")
+
+    def delete_coveragestore(self, uid, delete_on_geoserver=True, delete_metadata=True):
+        if delete_metadata:
+            self.metadata_manager.delete_metadata(uid)
+            log.info("Metadata removed")
+        # get layername from uid
+        if delete_on_geoserver:
+            layername = uid if "|" not in uid else uid.split("|")[1]
+            self.geoserver_manager.delete_store(layername)
+            log.info("Geoserver coveragestore removed")
+
+    def delete_featuretype(self, uid, delete_on_geoserver=True, delete_metadata=True):
+        if delete_metadata:
+            self.metadata_manager.delete_metadata(uid)
+            log.info("Metadata removed")
+
+        # get layername from uid
+        if delete_on_geoserver:
+            layername = uid if "|" not in uid else uid.split("|")[1]
+            self.geoserver_manager.delete_layer(layername)
+            log.info("Geoserver layer removed")
 
     def publish_featuretype(self, data):
         print "publish_featuretype"

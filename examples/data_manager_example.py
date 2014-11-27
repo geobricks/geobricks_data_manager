@@ -31,11 +31,16 @@ metadata_def = {
     "dsd" : {
         "contextSystem": "FENIX",
         "workspace": "dajeforte",
-        "layerName": "MOD13A2_385722",
+        "layerName": "test_modis",
         "defaultStyle": "raster_style_modis"
     }
 }
 path = "../test_data/MODIS/MOD13A2/MOD13A2_3857.tif"
 
 data_manager = DataManager(config)
+
+# Publish coveragestore
 data_manager.publish_coveragestore(path, metadata_def)
+
+# Remove coveragestore
+data_manager.delete_coveragestore("dajeforte|test_modis")

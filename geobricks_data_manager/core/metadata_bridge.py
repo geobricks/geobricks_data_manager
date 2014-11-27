@@ -1,10 +1,11 @@
+import rasterio
 
-def translate_from_metadata_to_geoserver(layername, title, workspace, defaultStyle=None, abstract=None):
-    geoserver_def = {}
+def translate_from_metadata_to_geoserver(layername, title, workspace, crs, defaultStyle=None, abstract=None):
     geoserver_def = {}
     geoserver_def["layerName"] = layername
     geoserver_def["title"] = title
     geoserver_def["workspace"] = workspace
+    geoserver_def["crs"] = crs
     if abstract is not None:
         geoserver_def["abstract"] = abstract
     if defaultStyle is not None:
@@ -14,6 +15,14 @@ def translate_from_metadata_to_geoserver(layername, title, workspace, defaultSty
 
 # TODO: move it
 def add_metadata_from_raster(file_path, metadata_def):
+    with rasterio.open(file_path) as src:
+        print src.meta
+        # crs
+        if metadata_def:
+            # add crs to metadata
+            print src.crs['init']
+        # nodata: save it in the db? or check it at runtime?
+        # probably the only useful stuff is EPSG for now
     pass
     #print "TODO add_metadata_from_raster"
     # try:
@@ -25,7 +34,7 @@ def add_metadata_from_raster(file_path, metadata_def):
     # except Exception, e:
     #     log.error(e)
     #     pass
-        # get boundingbox and set it
+    # get boundingbox and set it
 
 def add_metadata_from_vector(file_path, metadata_json):
     return "TODO:"
