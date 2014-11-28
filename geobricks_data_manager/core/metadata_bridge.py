@@ -18,9 +18,11 @@ def add_metadata_from_raster(file_path, metadata_def):
     with rasterio.open(file_path) as src:
         print src.meta
         # crs
+        # if crs not in metadata add to metadata_def
         if metadata_def:
             # add crs to metadata
             print src.crs['init']
+
         # nodata: save it in the db? or check it at runtime?
         # probably the only useful stuff is EPSG for now
     pass
