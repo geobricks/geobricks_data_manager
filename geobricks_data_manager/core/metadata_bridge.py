@@ -1,15 +1,17 @@
 import rasterio
 
-def translate_from_metadata_to_geoserver(layername, title, workspace, crs, defaultStyle=None, abstract=None):
+def translate_from_metadata_to_geoserver(layername, title, workspace, crs=None, defaultStyle=None, abstract=None):
     geoserver_def = {}
     geoserver_def["layerName"] = layername
     geoserver_def["title"] = title
     geoserver_def["workspace"] = workspace
-    geoserver_def["crs"] = crs
+    # TODO: in theory should be mandatory!
+    if crs is not None:
+        geoserver_def["crs"] = crs
     if abstract is not None:
         geoserver_def["abstract"] = abstract
     if defaultStyle is not None:
-        geoserver_def["defaultStyle"]= defaultStyle
+        geoserver_def["defaultStyle"] = defaultStyle
     return geoserver_def
 
 

@@ -78,7 +78,8 @@ class DataManager():
             except Exception: pass
             try: defaultStyle = metadata_def["dsd"]["defaultStyle"]
             except Exception: pass
-            geoserver_def = translate_from_metadata_to_geoserver(layername, title, metadata_def["dsd"]["workspace"], defaultStyle, abstact)
+            geoserver_def = translate_from_metadata_to_geoserver(layername, title, metadata_def["dsd"]["workspace"], None, defaultStyle, abstact)
+            print geoserver_def
 
             # publish on metadata
             if publish_metadata is True:
