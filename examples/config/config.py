@@ -59,7 +59,7 @@ config = {
 
         # Geoserver
         "geoserver": {
-            "geoserver_master": "http://168.202.28.214:9090/geoserver/rest",
+            "geoserver_master": "http://168.202.28.214:10001/geoserver/rest",
             "geoserver_slaves": [],
             "username": "admin",
             "password": "geoserver",
@@ -85,7 +85,8 @@ config = {
         "metadata": {
             "url_create_metadata": "http://exldvsdmxreg1.ext.fao.org:7788/v2/msd/resources/metadata",
             "url_get_metadata_uid": "http://exldvsdmxreg1.ext.fao.org:7788/v2/msd/resources/metadata/uid/<uid>",
-            "url_get_metadata": "http://exldvsdmxreg1.ext.fao.org:7788/v2/msd/resources/find"
+            "url_get_metadata": "http://exldvsdmxreg1.ext.fao.org:7788/v2/msd/resources/find",
+            "url_create_coding_system": "http//exldvsdmxreg1.ext.fao.org:7788/v2/msd/resources"
         }
     }
 }

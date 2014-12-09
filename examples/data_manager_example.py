@@ -35,7 +35,7 @@ metadata_def = {
         "defaultStyle": "raster_style_modis"
     }
 }
-metadata_def["uid"] = metadata_def["dsd"]["workspace"] + "|" + metadata_def["dsd"]["layerName"]
+metadata_def["uid"] = metadata_def["dsd"]["workspace"] + "@" + metadata_def["dsd"]["layerName"]
 
 path = "../test_data/MODIS/MOD13A2/MOD13A2_3857.tif"
 
@@ -46,7 +46,8 @@ data_manager.publish_coveragestore(path, metadata_def)
 
 # Remove coveragestore
 try:
-    data_manager.delete_coveragestore(metadata_def["uid"])
+    #data_manager.delete_coveragestore(metadata_def["uid"])
+    print "here"
 except Exception, e:
     print e
 

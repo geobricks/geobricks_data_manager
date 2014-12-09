@@ -8,6 +8,9 @@ from geobricks_data_manager.core.metadata_bridge import translate_from_metadata_
 log = logger(__file__)
 
 
+# TODO: remove it from here (move it to the config file?)
+uid_separator = "@"
+
 class DataManager():
 
     metadata_manager = None
@@ -69,7 +72,7 @@ class DataManager():
 
             # setting up the uid
             if "uid" not in metadata_def:
-                metadata_def["uid"] = metadata_def["dsd"]["workspace"] + "|" + layername
+                metadata_def["uid"] = metadata_def["dsd"]["workspace"] + uid_separator + layername
 
             # setting up geoserver metadata TODO: move it
             abstact = None
@@ -125,11 +128,14 @@ class DataManager():
         :return: ?
         '''
         if delete_metadata:
+            log.info("deleting metadata: " + uid)
             self.metadata_manager.delete_metadata(uid)
             log.info("Metadata removed: " + uid)
         # get layername from uid
         if delete_on_geoserver:
-            layername = uid if "|" not in uid else uid.split("|")[1]
+            log.info("deleting on geoserver: " + uid)
+            layername = uid if uid_separator not in uid else uid.split(uid_separator)[1]
+            log.info(layername)
             self.geoserver_manager.delete_store(layername)
             log.info("Geoserver coveragestore removed: " + layername)
 
@@ -151,7 +157,7 @@ class DataManager():
 
         try:
             if delete_on_geoserver:
-                layername = uid if "|" not in uid else uid.split("|")[1]
+                layername = uid if uid_separator not in uid else uid.split(uid_separator)[1]
                 #TODO: shouldn't be passed also the workspace to gsconfig delete?
                 self.geoserver_manager.delete_layer(layername)
                 log.info("Geoserver layer removed: " + layername)
