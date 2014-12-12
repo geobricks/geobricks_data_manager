@@ -9,7 +9,7 @@ log = logger(__file__)
 
 
 # TODO: remove it from here (move it to the config file?)
-uid_separator = "@"
+uid_separator = ":"
 
 class DataManager():
 
