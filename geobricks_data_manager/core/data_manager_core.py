@@ -165,6 +165,69 @@ class DataManager():
             log.error(e)
             raise Exception(e)
 
+    def publish_coveragestore_ftp(self, file_path, metadata_def, overwrite=False, publish_on_ftp=True, publish_metadata=True, remove_file=False):
+        """
+        :param file_path: path to the input file
+        :param metadata_def: json metadata
+        :param overwrite: overwrite the resource
+        :param publish_on_ftp: publishing on remote ftp
+        :param publish_metadata:  publishing on Metadata DB
+        :param remove_file: remove the file the process is finished
+        :return: ?
+        """
+        log.info("publish_coveragestore")
+        try:
+            # add additional layer info to the metadata i.e. bbox and EPSG code if they are not already added
+            add_metadata_from_raster(file_path, metadata_def)
+            # publish the coverage store
+            return self._publish_coverage_ftp(file_path, metadata_def, overwrite, publish_on_ftp, publish_metadata, remove_file)
+        except Exception, e:
+            raise Exception(e)
+
+    def _publish_coverage_ftp(self, file_path, metadata_def=None, overwrite=False, publish_on_ftp=True, publish_metadata=True, remove_file=False):
+        """
+        :param file_path: path to the input file
+        :param metadata_def: json metadata
+        :param overwrite: overwrite the resource
+        :param publish_on_ftp: publishing on remote ftp
+        :param publish_metadata:  publishing on Metadata DB
+        :param remove_file: remove the file the process is finished
+        :return: ?
+        """
+        try:
+            # get the title, if EN exists otherwise get the first available key TODO: how to do it better? default language?
+            title = metadata_def["title"]["EN"] if "EN" in metadata_def["title"] else metadata_def["title"][metadata_def["title"].keys()[0]]
+
+            # sanitize the layername. "layerName" has to be set
+            metadata_def["dsd"]["layerName"] = sanitize_name(metadata_def["dsd"]["layerName"])
+            layername = metadata_def["dsd"]["layerName"]
+
+            # getting the default workspace
+            #metadata_def["dsd"]["workspace"] = metadata_def["dsd"]["workspace"] if "workspace" in metadata_def["dsd"] else self.geoserver_manager.get_default_workspace_name()
+
+            # setting up the uid TODO: only layerName?
+            metadata_def["uid"] = metadata_def["dsd"]["layerName"]
+
+
+            # publish on metadata
+            if publish_metadata is True:
+                log.info(metadata_def)
+                self.metadata_manager.publish_metadata(metadata_def, overwrite)
+                log.info("Metadata published")
+
+            # publish table on geoserver cluster
+            if publish_on_ftp is True:
+                self.geoserver_manager.publish_coveragestore(file_path, geoserver_def, overwrite)
+                log.info("Geoserver published")
+
+            # remove files and folder of the shapefile
+            if file_path is not None and remove_file:
+                removefile(file_path)
+
+        except Exception, e:
+            log.error(e)
+            self.rollback_coveragestore()
+
     # SEARCH
     def get_all_layers(self):
         '''
