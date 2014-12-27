@@ -1,12 +1,11 @@
-import shutil
 import os
-from geobricks_data_manager.utils.log import logger
 from geobricks_geoserver_manager.core.geoserver_manager_core import GeoserverManager
 from geobricks_metadata_manager.core.metadata_manager_d3s_core import MetadataManager
+from geobricks_ftp_manager.core.ftp_manager import FTPManager
 from geobricks_data_manager.core.metadata_bridge import translate_from_metadata_to_geoserver, add_metadata_from_raster
+from geobricks_common.core.log import logger
 
 log = logger(__file__)
-
 
 # TODO: remove it from here (move it to the config file?)
 uid_separator = ":"
@@ -15,17 +14,20 @@ class DataManager():
 
     metadata_manager = None
     geoserver_manager = None
+    ftp_manager = None
 
     def __init__(self, config):
         # settings
         self.config = config
 
-        # TODO: add only stuff used by Metadata manager?
+        # TODO: add only stuff used by MetadataManager?
         self.metadata_manager = MetadataManager(config)
-        # TODO: add only stuff used by Geoserver manager?
+        # TODO: add only stuff used by GeoserverManager?
         self.geoserver_manager = GeoserverManager(config)
+        # TODO: add only stuff used by FTPManager?
+        self.ftp_manager = FTPManager(config)
 
-    # PUBLISH
+    ####### PUBLISH
 
     def publish_data(self, data):
         print "switch to raster or vector"
@@ -60,6 +62,9 @@ class DataManager():
         :return: ?
         """
         try:
+            # Store type (geoserver, ftp)
+            metadata_def["dsd"]["storeType"] = "geoserver"
+
             # get the title, if EN exists otherwise get the first available key TODO: how to do it better? default language?
             title = metadata_def["title"]["EN"] if "EN" in metadata_def["title"] else metadata_def["title"][metadata_def["title"].keys()[0]]
 
@@ -109,13 +114,13 @@ class DataManager():
         log.warn('TODO Implement it for "meContent":{"resourceRepresentationType":"geographic","seCoverage":{"coverageSectors":{"idCodeList":"FENIX_GeographicalSectors","version":"1.0","codes":[{"code":"MODIS_LAND_COVER"}]}}')
 
     def publish_featuretype(self, data):
-        print "publish_featuretype"
+        log.warn("TODO: publish_featuretype")
 
     def pulish_postgis_table(self, data):
-        print "publish_featuretype"
+        log.warn("TODO: publish_postgis_table")
 
 
-    # DELETE
+    ####### DELETE
 
     def delete(self, uid, type, delete_on_geoserver=True, delete_metadata=True):
         log.warn("To implement")
@@ -138,7 +143,6 @@ class DataManager():
             log.info(layername)
             self.geoserver_manager.delete_store(layername)
             log.info("Geoserver coveragestore removed: " + layername)
-
 
     def delete_featuretype(self, uid, delete_on_geoserver=True, delete_metadata=True):
         '''
@@ -195,19 +199,14 @@ class DataManager():
         :return: ?
         """
         try:
-            # get the title, if EN exists otherwise get the first available key TODO: how to do it better? default language?
-            title = metadata_def["title"]["EN"] if "EN" in metadata_def["title"] else metadata_def["title"][metadata_def["title"].keys()[0]]
+            # Store type (geoserver, ftp)
+            metadata_def["dsd"]["storeType"] = "ftp"
 
             # sanitize the layername. "layerName" has to be set
             metadata_def["dsd"]["layerName"] = sanitize_name(metadata_def["dsd"]["layerName"])
-            layername = metadata_def["dsd"]["layerName"]
-
-            # getting the default workspace
-            #metadata_def["dsd"]["workspace"] = metadata_def["dsd"]["workspace"] if "workspace" in metadata_def["dsd"] else self.geoserver_manager.get_default_workspace_name()
 
             # setting up the uid TODO: only layerName?
             metadata_def["uid"] = metadata_def["dsd"]["layerName"]
-
 
             # publish on metadata
             if publish_metadata is True:
@@ -217,8 +216,8 @@ class DataManager():
 
             # publish table on geoserver cluster
             if publish_on_ftp is True:
-                self.geoserver_manager.publish_coveragestore(file_path, geoserver_def, overwrite)
-                log.info("Geoserver published")
+                self.ftp_manager.publish_raster_to_ftp(file_path)
+                log.info("FTP published")
 
             # remove files and folder of the shapefile
             if file_path is not None and remove_file:
@@ -228,7 +227,8 @@ class DataManager():
             log.error(e)
             self.rollback_coveragestore()
 
-    # SEARCH
+    ####### SEARCH
+
     def get_all_layers(self):
         '''
         :return: json containing the stored layers
