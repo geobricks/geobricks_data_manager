@@ -56,7 +56,7 @@ class DataManager():
         except Exception, e:
             raise Exception(e)
 
-    def _publish_coverage(self, file_path, metadata_def=None, overwrite=False, publish_on_geoserver=True, publish_metadata=True, remove_file=False):
+    def _publish_coverage(self, file_path, metadata_def, overwrite=False, publish_on_geoserver=True, publish_metadata=True, remove_file=False):
         """
         :param file_path: path to the input file
         :param metadata_def: json metadata
@@ -115,6 +115,8 @@ class DataManager():
         except Exception, e:
             log.error(e)
             self.rollback_coveragestore()
+            raise Exception(e)
+        return True
 
     def publish_codelist(self):
         # if a code doesn't exist publish a new code associate to the codelist (TODO: How to hanglde the labels?)
@@ -130,14 +132,13 @@ class DataManager():
 
     ####### DELETE
 
-    def delete(self, uid, delete_on_geoserver=True, delete_metadata=True, delete_on_storage=True):
+    def delete(self, uid, delete_metadata=True, delete_on_geoserver=True, delete_on_storage=True):
         try:
             metadata = self.metadata_manager.get_by_uid(uid)
-            print metadata
 
             # Handle Raster delete
             if metadata["meSpatialRepresentation"]["layerType"] == "raster":
-                self._delete_coveragestore(metadata, delete_on_geoserver, delete_metadata, delete_on_storage)
+                self._delete_coveragestore(metadata, delete_metadata, delete_on_geoserver, delete_on_storage)
 
             # Handel Vector delete
             elif metadata["meSpatialRepresentation"]["layerType"] == "vector":
@@ -146,11 +147,11 @@ class DataManager():
 
             else:
                 raise Exception("No meSpatialRepresentation.layerType found")
-
         except Exception, e:
             log.error(e)
             raise Exception(e)
 
+        return True
 
     # TODO how to handle the storage problem?
     # TODO: call the metadata service before to delete on geoserver to be sure that is a published layer and
