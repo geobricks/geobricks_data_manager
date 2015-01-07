@@ -8,9 +8,6 @@ from geobricks_common.core.filesystem import sanitize_name
 
 log = logger(__file__)
 
-# TODO: remove it from here (move it to the config file?)
-# uid_separator = ":"
-
 
 class DataManager():
 
@@ -19,6 +16,7 @@ class DataManager():
     ftp_manager = None
 
     def __init__(self, config):
+
         # settings
         self.config = config
 
@@ -132,31 +130,70 @@ class DataManager():
 
     ####### DELETE
 
-    def delete(self, uid, type, delete_on_geoserver=True, delete_metadata=True):
-        log.warn("To implement")
+    def delete(self, uid, delete_on_geoserver=True, delete_metadata=True, delete_on_storage=True):
+        try:
+            metadata = self.metadata_manager.get_by_uid(uid)
+            print metadata
+
+            # Handle Raster delete
+            if metadata["meSpatialRepresentation"]["layerType"] == "raster":
+                self._delete_coveragestore(metadata, delete_on_geoserver, delete_metadata, delete_on_storage)
+
+            # Handel Vector delete
+            elif metadata["meSpatialRepresentation"]["layerType"] == "vector":
+                # TODO: handle shp e postgis layer
+                log.warn("handle delete vector layer")
+
+            else:
+                raise Exception("No meSpatialRepresentation.layerType found")
+
+        except Exception, e:
+            log.error(e)
+            raise Exception(e)
+
 
     # TODO how to handle the storage problem?
     # TODO: call the metadata service before to delete on geoserver to be sure that is a published layer and
     # and not in storage
-    def delete_coveragestore(self, uid, delete_on_geoserver=True, delete_metadata=True):
+    def _delete_coveragestore(self, metadata, delete_metadata=True, delete_on_geoserver=True, delete_on_storage=True):
         '''
-        :param uid: resource uid of the coveragestore
+        :param metadata: resource metadata of the coveragestore
         :param delete_on_geoserver: delete the resource from Geoserver
         :param delete_metadata:  delete the resource from Metadata DB
+        :param delete_on_storage:  delete the resource from Storage
         :return: ?
         '''
+
         if delete_metadata:
-            log.info("deleting metadata: " + uid)
-            self.metadata_manager.delete_metadata(uid)
-            log.info("Metadata removed: " + uid)
+            self._delete_metadata(metadata["uid"])
 
         # get layername from uid
         if delete_on_geoserver:
-            log.info("deleting on geoserver: " + uid)
-            layername = uid if self.uid_separator not in uid else uid.split(self.uid_separator)[1]
-            log.info(layername)
-            self.geoserver_manager.delete_store(layername)
-            log.info("Geoserver coveragestore removed: " + layername)
+            self._delete_store_on_geoserver(metadata)
+
+        if delete_on_storage:
+            self._delete_on_storage(metadata)
+
+    def _delete_metadata(self, uid):
+        log.info("deleting metadata: " + uid)
+        self.metadata_manager.delete_metadata(uid)
+        log.info("Metadata removed: " + uid)
+
+    def _delete_store_on_geoserver(self, metadata):
+        if "datasource" in metadata["dsd"]:
+            if metadata["dsd"]["datasource"] == "geoserver":
+                layername = metadata["dsd"]["layerName"]
+                # TODO: Get full metadata and delete it
+                log.info("deleting on geoserver: " + layername)
+                log.info(layername)
+                self.geoserver_manager.delete_store(layername)
+                log.info("Geoserver coveragestore removed: " + layername)
+
+    def _delete_on_storage(self, metadata):
+        if "datasource" in metadata["dsd"]:
+            if metadata["dsd"]["datasource"] == "storage":
+                layername = metadata["dsd"]["layerName"]
+                log.warn("TODO: to implement _delete_on_storage:" + layername)
 
     def delete_featuretype(self, uid, delete_on_geoserver=True, delete_metadata=True):
         '''
