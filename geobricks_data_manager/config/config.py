@@ -21,10 +21,14 @@ config = {
 
         # metadata config
         "metadata": {
-            "url_create_metadata": "http://exldvsdmxreg1.ext.fao.org:7788/v2/msd/resources/metadata",
-            "url_get_metadata_uid": "http://exldvsdmxreg1.ext.fao.org:7788/v2/msd/resources/metadata/uid/<uid>",
-            "url_get_metadata": "http://exldvsdmxreg1.ext.fao.org:7788/v2/msd/resources/find",
-            "url_create_coding_system": "http//exldvsdmxreg1.ext.fao.org:7788/v2/msd/resources"
+            "url_create_metadata": "//exldvsdmxreg1.ext.fao.org:7788/v2/msd/resources/metadata",
+            "url_get_metadata_uid": "//exldvsdmxreg1.ext.fao.org:7788/v2/msd/resources/metadata/uid/<uid>",
+            # get metadata
+            "url_get_metadata": "//exldvsdmxreg1.ext.fao.org:7788/v2/msd/resources/metadata/uid/<uid>",
+            "url_get_full_metadata": "//exldvsdmxreg1.ext.fao.org:7788/v2/msd/resources/metadata/uid/<uid>?full=true&dsd=true",
+            # coding system
+            "url_create_coding_system": "//exldvsdmxreg1.ext.fao.org:7788/v2/msd/resources",
+            "url_data_coding_system": "://exldvsdmxreg1.ext.fao.org:7788/v2/msd/resources/data/uid/<uid>",
         },
 
         # geoserver settings

@@ -4,11 +4,13 @@ from geobricks_metadata_manager.core.metadata_manager_d3s_core import MetadataMa
 from geobricks_ftp_manager.core.ftp_manager import FTPManager
 from geobricks_data_manager.core.metadata_bridge import translate_from_metadata_to_geoserver, add_metadata_from_raster
 from geobricks_common.core.log import logger
+from geobricks_common.core.filesystem import sanitize_name
 
 log = logger(__file__)
 
 # TODO: remove it from here (move it to the config file?)
-uid_separator = ":"
+# uid_separator = ":"
+
 
 class DataManager():
 
@@ -20,12 +22,17 @@ class DataManager():
         # settings
         self.config = config
 
+        # uid separator if not defined
+        if "folders" in config["settings"]:
+            self.uid_separator = config["settings"]["folders"]["workspace_layer_separator"] if "workspace_layer_separator" in config["settings"]["folders"] else ":"
+
         # TODO: add only stuff used by MetadataManager?
         self.metadata_manager = MetadataManager(config)
         # TODO: add only stuff used by GeoserverManager?
         self.geoserver_manager = GeoserverManager(config)
         # TODO: add only stuff used by FTPManager?
         self.ftp_manager = FTPManager(config)
+
 
     ####### PUBLISH
 
@@ -62,8 +69,9 @@ class DataManager():
         :return: ?
         """
         try:
-            # Store type (geoserver, ftp)
-            metadata_def["dsd"]["storeType"] = "geoserver"
+            # Store type (geoserver, storage)
+            if "datasource" not in metadata_def["dsd"]:
+                metadata_def["dsd"]["datasource"] = "geoserver"
 
             # get the title, if EN exists otherwise get the first available key TODO: how to do it better? default language?
             title = metadata_def["title"]["EN"] if "EN" in metadata_def["title"] else metadata_def["title"][metadata_def["title"].keys()[0]]
@@ -72,22 +80,13 @@ class DataManager():
             metadata_def["dsd"]["layerName"] = sanitize_name(metadata_def["dsd"]["layerName"])
             layername = metadata_def["dsd"]["layerName"]
 
-            # getting the default workspace
-            metadata_def["dsd"]["workspace"] = metadata_def["dsd"]["workspace"] if "workspace" in metadata_def["dsd"] else self.geoserver_manager.get_default_workspace_name()
+            # getting the default workspace if not storage
+            if metadata_def["dsd"]["datasource"] == "geoserver":
+                metadata_def["dsd"]["workspace"] = metadata_def["dsd"]["workspace"] if "workspace" in metadata_def["dsd"] else self.geoserver_manager.get_default_workspace_name()
 
-            # setting up the uid
+            # setting up the uid (checks if the workspace is set or not)
             if "uid" not in metadata_def:
-                metadata_def["uid"] = metadata_def["dsd"]["workspace"] + uid_separator + layername
-
-            # setting up geoserver metadata TODO: move it
-            abstact = None
-            defaultStyle = None
-            try: abstact = metadata_def["meContent"]["description"]["EN"]
-            except Exception: pass
-            try: defaultStyle = metadata_def["dsd"]["defaultStyle"]
-            except Exception: pass
-            geoserver_def = translate_from_metadata_to_geoserver(layername, title, metadata_def["dsd"]["workspace"], None, defaultStyle, abstact)
-            print geoserver_def
+                metadata_def["uid"] = (metadata_def["dsd"]["workspace"] + self.uid_separator + layername) if "workspace" in metadata_def["dsd"] else layername
 
             # publish on metadata
             if publish_metadata is True:
@@ -97,6 +96,17 @@ class DataManager():
 
             # publish table on geoserver cluster
             if publish_on_geoserver is True:
+                # setting up geoserver metadata TODO: move it
+                abstact = None
+                defaultStyle = None
+                try:
+                    abstact = metadata_def["meContent"]["description"]["EN"]
+                except Exception: pass
+                try:
+                    defaultStyle = metadata_def["dsd"]["defaultStyle"]
+                except Exception: pass
+                geoserver_def = translate_from_metadata_to_geoserver(layername, title, metadata_def["dsd"]["workspace"], None, defaultStyle, abstact)
+                print geoserver_def
                 self.geoserver_manager.publish_coveragestore(file_path, geoserver_def, overwrite)
                 log.info("Geoserver published")
 
@@ -125,6 +135,9 @@ class DataManager():
     def delete(self, uid, type, delete_on_geoserver=True, delete_metadata=True):
         log.warn("To implement")
 
+    # TODO how to handle the storage problem?
+    # TODO: call the metadata service before to delete on geoserver to be sure that is a published layer and
+    # and not in storage
     def delete_coveragestore(self, uid, delete_on_geoserver=True, delete_metadata=True):
         '''
         :param uid: resource uid of the coveragestore
@@ -136,10 +149,11 @@ class DataManager():
             log.info("deleting metadata: " + uid)
             self.metadata_manager.delete_metadata(uid)
             log.info("Metadata removed: " + uid)
+
         # get layername from uid
         if delete_on_geoserver:
             log.info("deleting on geoserver: " + uid)
-            layername = uid if uid_separator not in uid else uid.split(uid_separator)[1]
+            layername = uid if self.uid_separator not in uid else uid.split(self.uid_separator)[1]
             log.info(layername)
             self.geoserver_manager.delete_store(layername)
             log.info("Geoserver coveragestore removed: " + layername)
@@ -161,7 +175,7 @@ class DataManager():
 
         try:
             if delete_on_geoserver:
-                layername = uid if uid_separator not in uid else uid.split(uid_separator)[1]
+                layername = uid if self.uid_separator not in uid else uid.split(self.uid_separator)[1]
                 #TODO: shouldn't be passed also the workspace to gsconfig delete?
                 self.geoserver_manager.delete_layer(layername)
                 log.info("Geoserver layer removed: " + layername)
@@ -169,7 +183,8 @@ class DataManager():
             log.error(e)
             raise Exception(e)
 
-    def publish_coveragestore_ftp(self, file_path, metadata_def, overwrite=False, publish_on_ftp=True, publish_metadata=True, remove_file=False):
+    # TODO Shoulde be merged the common parts with the normal publishing
+    def publish_coveragestore_storage(self, file_path, metadata_def, overwrite=False, publish_on_storage=True, publish_metadata=True, remove_file=False):
         """
         :param file_path: path to the input file
         :param metadata_def: json metadata
@@ -184,11 +199,11 @@ class DataManager():
             # add additional layer info to the metadata i.e. bbox and EPSG code if they are not already added
             add_metadata_from_raster(file_path, metadata_def)
             # publish the coverage store
-            return self._publish_coverage_ftp(file_path, metadata_def, overwrite, publish_on_ftp, publish_metadata, remove_file)
+            return self._publish_coverage_storage(file_path, metadata_def, overwrite, publish_on_storage, publish_metadata, remove_file)
         except Exception, e:
             raise Exception(e)
 
-    def _publish_coverage_ftp(self, file_path, metadata_def=None, overwrite=False, publish_on_ftp=True, publish_metadata=True, remove_file=False):
+    def _publish_coverage_storage(self, file_path, metadata_def=None, overwrite=False, publish_on_storage=True, publish_metadata=True, remove_file=False):
         """
         :param file_path: path to the input file
         :param metadata_def: json metadata
@@ -199,8 +214,9 @@ class DataManager():
         :return: ?
         """
         try:
-            # Store type (geoserver, ftp)
-            metadata_def["dsd"]["storeType"] = "ftp"
+            # Datasource type (geoserver, storage)
+            if "datasource" not in metadata_def["dsd"]:
+                metadata_def["dsd"]["datasource"] = "storage"
 
             # sanitize the layername. "layerName" has to be set
             metadata_def["dsd"]["layerName"] = sanitize_name(metadata_def["dsd"]["layerName"])
@@ -215,9 +231,9 @@ class DataManager():
                 log.info("Metadata published")
 
             # publish table on geoserver cluster
-            if publish_on_ftp is True:
+            if publish_on_storage is True:
                 self.ftp_manager.publish_raster_to_ftp(file_path)
-                log.info("FTP published")
+                log.info("Storage published")
 
             # remove files and folder of the shapefile
             if file_path is not None and remove_file:
@@ -226,6 +242,7 @@ class DataManager():
         except Exception, e:
             log.error(e)
             self.rollback_coveragestore()
+
 
     ####### SEARCH
 
@@ -248,16 +265,7 @@ class DataManager():
         return "TODO rollback_coveragestore"
 
 
-def sanitize_name(name):
-    """
-    This method clean the name of a layer, should be avoided to use dots as names
-    :param name: name of the layer
-    :return: sanitized layer name
-    """
-    name = name.replace(".", "")
-    name = name.replace(" ", "_")
-    name = name.lower()
-    return name
+
 
 
 def removefile(file_path):
