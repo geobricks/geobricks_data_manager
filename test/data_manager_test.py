@@ -20,3 +20,6 @@ class GeobricksTest(unittest.TestCase):
     def test_publish_coveragestore(self):
         print "here"
 
+    def test_publish_coveragestore(self):
+        print "here"
+

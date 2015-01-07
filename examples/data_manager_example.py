@@ -1,4 +1,4 @@
-from examples.config.config import config
+from geobricks_data_manager.config.config import config
 from geobricks_data_manager.core.data_manager_core import DataManager
 
 metadata_def = {
@@ -9,7 +9,7 @@ metadata_def = {
             "coverageSectors": {
                 "idCodeList": "FENIX_GeographicalSectors",
                 "version": "1.0",
-                "codes": [{"code": "MODIS_LAND_COVER"}]
+                "codes": [{"code": "storage_test"}]
             },
             "coverageTime": {
                 "to": 949276800000,
@@ -24,12 +24,13 @@ metadata_def = {
             "codes": [{"code": "AVG_MONTHLY"}]
         },
         "seDefaultStyle": {"name": "ghg_cultivation_organic_soils_cropland"},
-        "layerType": "vector"
+        "layerType": "raster"
     },
     "title": {"EN": "Cultivation Organic Soils - Croplands"},
 
-    "dsd" : {
+    "dsd": {
         "contextSystem": "FENIX",
+        "datasource" : "geoserver",
         "workspace": "dajeforte",
         "layerName": "test_modis",
         "defaultStyle": "raster_style_modis"
