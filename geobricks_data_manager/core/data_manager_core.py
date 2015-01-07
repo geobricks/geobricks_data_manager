@@ -104,7 +104,7 @@ class DataManager():
                     defaultStyle = metadata_def["dsd"]["defaultStyle"]
                 except Exception: pass
                 geoserver_def = translate_from_metadata_to_geoserver(layername, title, metadata_def["dsd"]["workspace"], None, defaultStyle, abstact)
-                print geoserver_def
+                log.info(geoserver_def)
                 self.geoserver_manager.publish_coveragestore(file_path, geoserver_def, overwrite)
                 log.info("Geoserver published")
 
@@ -227,7 +227,7 @@ class DataManager():
         :param file_path: path to the input file
         :param metadata_def: json metadata
         :param overwrite: overwrite the resource
-        :param publish_on_ftp: publishing on remote ftp
+        :param publish_on_storage: publishing on remote storage
         :param publish_metadata:  publishing on Metadata DB
         :param remove_file: remove the file the process is finished
         :return: ?
@@ -282,7 +282,7 @@ class DataManager():
             self.rollback_coveragestore()
 
 
-    ####### SEARCH
+    ####### SEARCH (PROXY TO MetadataManager)
 
     def get_all_layers(self):
         '''
