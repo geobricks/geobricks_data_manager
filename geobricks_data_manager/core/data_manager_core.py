@@ -1,7 +1,7 @@
 import os
 from geobricks_geoserver_manager.core.geoserver_manager_core import GeoserverManager
 from geobricks_metadata_manager.core.metadata_manager_d3s_core import MetadataManager
-from geobricks_ftp_manager.core.ftp_manager import FTPManager
+from geobricks_storage_manager.core.storage_manager import StorageManager
 from geobricks_data_manager.core.metadata_bridge import translate_from_metadata_to_geoserver, add_metadata_from_raster
 from geobricks_common.core.log import logger
 from geobricks_common.core.filesystem import sanitize_name
@@ -13,7 +13,7 @@ class DataManager():
 
     metadata_manager = None
     geoserver_manager = None
-    ftp_manager = None
+    storage_manager = None
 
     def __init__(self, config):
 
@@ -29,14 +29,10 @@ class DataManager():
         # TODO: add only stuff used by GeoserverManager?
         self.geoserver_manager = GeoserverManager(config)
         # TODO: add only stuff used by FTPManager?
-        self.ftp_manager = FTPManager(config)
+        self.storage_manager = StorageManager(config)
 
 
     ####### PUBLISH
-
-    def publish_data(self, data):
-        print "switch to raster or vector"
-
     def publish_coveragestore(self, file_path, metadata_def, overwrite=False, publish_on_geoserver=True, publish_metadata=True, remove_file=False):
         """
         :param file_path: path to the input file
@@ -71,7 +67,8 @@ class DataManager():
             if "datasource" not in metadata_def["dsd"]:
                 metadata_def["dsd"]["datasource"] = "geoserver"
 
-            # get the title, if EN exists otherwise get the first available key TODO: how to do it better? default language?
+            # get the title, if EN exists otherwise get the first available key
+            # TODO: how to do it better? default language? Should throw an Exception the fact that there is no Title?
             title = metadata_def["title"]["EN"] if "EN" in metadata_def["title"] else metadata_def["title"][metadata_def["title"].keys()[0]]
 
             # sanitize the layername. "layerName" has to be set
@@ -270,7 +267,7 @@ class DataManager():
 
             # publish table on geoserver cluster
             if publish_on_storage is True:
-                self.ftp_manager.publish_raster_to_ftp(file_path)
+                self.storage_manager.publish_raster_to_ftp(file_path)
                 log.info("Storage published")
 
             # remove files and folder of the shapefile

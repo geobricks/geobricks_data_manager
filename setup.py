@@ -16,7 +16,7 @@ setup(
         'GeobricksCommon',
         'GeobricksMetadataManager',
         'GeobricksGeoserverManager',
-        'GeobricksFTPManager',
+        'GeobricksStorageManager',
     ],
     url='http://pypi.python.org/pypi/GeobricksDataManager/',
     keywords=['geobricks', 'metadata', 'geoserver', 'd3s']
