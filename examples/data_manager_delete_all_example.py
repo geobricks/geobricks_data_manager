@@ -1,4 +1,4 @@
-from examples.config.config import config
+from geobricks_data_manager.config.config import config
 from geobricks_data_manager.core.data_manager_core import DataManager
 
 data_manager = DataManager(config)

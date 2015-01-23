@@ -91,6 +91,7 @@ class DataManager():
 
             # publish table on geoserver cluster
             if publish_on_geoserver is True:
+                log.info("publish_on_geoserver")
                 # setting up geoserver metadata TODO: move it
                 abstact = None
                 defaultStyle = None
@@ -113,7 +114,7 @@ class DataManager():
             log.error(e)
             self.rollback_coveragestore()
             raise Exception(e)
-        return True
+        return metadata_def
 
     def publish_codelist(self):
         # if a code doesn't exist publish a new code associate to the codelist (TODO: How to hanglde the labels?)
@@ -161,7 +162,7 @@ class DataManager():
         :param delete_on_storage:  delete the resource from Storage
         :return: ?
         '''
-
+        log.info("DELETE", metadata)
         if delete_metadata:
             self._delete_metadata(metadata["uid"])
 
@@ -180,12 +181,13 @@ class DataManager():
     def _delete_store_on_geoserver(self, metadata):
         if "datasource" in metadata["dsd"]:
             if metadata["dsd"]["datasource"] == "geoserver":
+                workspace = metadata["dsd"]["workspace"]
                 layername = metadata["dsd"]["layerName"]
                 # TODO: Get full metadata and delete it
                 log.info("deleting on geoserver: " + layername)
-                log.info(layername)
-                self.geoserver_manager.delete_store(layername)
-                log.info("Geoserver coveragestore removed: " + layername)
+                log.info(workspace + ":" + layername)
+                self.geoserver_manager.delete_store(layername, workspace)
+                log.info("Geoserver coveragestore removed: " + workspace + ":" + layername)
 
     def _delete_on_storage(self, metadata):
         if "datasource" in metadata["dsd"]:
@@ -277,7 +279,7 @@ class DataManager():
         except Exception, e:
             log.error(e)
             self.rollback_coveragestore()
-
+        return metadata_def
 
     ####### SEARCH (PROXY TO MetadataManager)
 
