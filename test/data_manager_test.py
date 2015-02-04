@@ -1,8 +1,11 @@
 import unittest
 import json
+from geobricks_common.core.log import logger
 from geobricks_data_manager.config.config import config
 from geobricks_data_manager.core.data_manager_core import DataManager
+from geobricks_data_manager.core.data_manager_syncronization import check_metadata
 
+log = logger(__file__)
 
 class GeobricksTest(unittest.TestCase):
 
@@ -23,7 +26,7 @@ class GeobricksTest(unittest.TestCase):
         "dsd": {
             "contextSystem": "FENIX",
             "datasoruce" : "geoserver",
-            "workspace": "fenix",
+            "workspace": "test",
             "layerName": "layer_test"
         }
     }
@@ -35,18 +38,23 @@ class GeobricksTest(unittest.TestCase):
     @classmethod
     def add_metadata_coverage(self):
         try:
-            self.data_manager.publish_coveragestore(self.path, self.metadata, False, False, True)
+            self.data_manager.publish_coveragestore(self.path, self.metadata)
         except Exception, e:
-            print e
+            log.error(e)
             pass
 
     def test_delete_coveragestore(self):
-        print self.metadata["uid"]
-        result = self.data_manager.delete(self.metadata["uid"], True, False, False)
+        result = self.data_manager.delete(self.metadata["uid"])
         self.assertEqual(result, True)
-        #print "here"
+
+    def test_check_metadata(self):
+        result = check_metadata(self.data_manager)
+        log.info(result)
 
 
-if __name__ == '__main__':
+def test_suite():
     suite = unittest.TestLoader().loadTestsFromTestCase(GeobricksTest)
     unittest.TextTestRunner(verbosity=2).run(suite)
+
+if __name__ == '__main__':
+    test_suite()

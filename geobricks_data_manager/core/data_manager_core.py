@@ -3,6 +3,7 @@ from geobricks_geoserver_manager.core.geoserver_manager_core import GeoserverMan
 from geobricks_metadata_manager.core.metadata_manager_d3s_core import MetadataManager
 from geobricks_storage_manager.core.storage_manager import StorageManager
 from geobricks_data_manager.core.metadata_bridge import translate_from_metadata_to_geoserver, add_metadata_from_raster
+from geobricks_data_manager.core.data_manager_syncronization import check_metadata
 from geobricks_common.core.log import logger
 from geobricks_common.core.filesystem import sanitize_name
 
@@ -301,7 +302,10 @@ class DataManager():
     def rollback_coveragestore(self):
         return "TODO rollback_coveragestore"
 
-
+    def check_consistency(self):
+        result = check_metadata(self)
+        log.warn(result)
+        return result
 
 
 
