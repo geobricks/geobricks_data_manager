@@ -1,5 +1,4 @@
 from geobricks_common.core.log import logger
-from geobricks_common.core.filesystem import get_raster_path
 
 log = logger(__file__)
 
