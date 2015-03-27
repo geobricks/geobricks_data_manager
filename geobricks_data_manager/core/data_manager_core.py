@@ -65,8 +65,8 @@ class DataManager():
         """
         try:
             # Store type (geoserver, storage)
-            if "datasource" not in metadata_def["dsd"]:
-                metadata_def["dsd"]["datasource"] = "geoserver"
+            if "datasources" not in metadata_def["dsd"]:
+                metadata_def["dsd"]["datasources"] = ["geoserver"]
 
             # get the title, if EN exists otherwise get the first available key
             # TODO: how to do it better? default language? Should throw an Exception the fact that there is no Title?
@@ -77,7 +77,7 @@ class DataManager():
             layername = metadata_def["dsd"]["layerName"]
 
             # getting the default workspace if not storage
-            if metadata_def["dsd"]["datasource"] == "geoserver":
+            if metadata_def["dsd"]["datasources"] == ["geoserver"]:
                 metadata_def["dsd"]["workspace"] = metadata_def["dsd"]["workspace"] if "workspace" in metadata_def["dsd"] else self.geoserver_manager.get_default_workspace_name()
 
             # setting up the uid (checks if the workspace is set or not)
@@ -180,8 +180,8 @@ class DataManager():
         log.info("Metadata removed: " + uid)
 
     def _delete_store_on_geoserver(self, metadata):
-        if "datasource" in metadata["dsd"]:
-            if metadata["dsd"]["datasource"] == "geoserver":
+        if "datasources" in metadata["dsd"]:
+            if metadata["dsd"]["datasources"] == ["geoserver"]:
                 workspace = metadata["dsd"]["workspace"]
                 layername = metadata["dsd"]["layerName"]
                 # TODO: Get full metadata and delete it
@@ -191,8 +191,8 @@ class DataManager():
                 log.info("Geoserver coveragestore removed: " + workspace + ":" + layername)
 
     def _delete_on_storage(self, metadata):
-        if "datasource" in metadata["dsd"]:
-            if metadata["dsd"]["datasource"] == "storage":
+        if "datasources" in metadata["dsd"]:
+            if metadata["dsd"]["datasources"] == ["storage"]:
                 layername = metadata["dsd"]["layerName"]
                 log.warn("TODO: to implement _delete_on_storage:" + layername)
 
@@ -253,8 +253,8 @@ class DataManager():
         """
         try:
             # Datasource type (geoserver, storage)
-            if "datasource" not in metadata_def["dsd"]:
-                metadata_def["dsd"]["datasource"] = "storage"
+            if "datasources" not in metadata_def["dsd"]:
+                metadata_def["dsd"]["datasources"] = "storage"
 
             # sanitize the layername. "layerName" has to be set
             metadata_def["dsd"]["layerName"] = sanitize_name(metadata_def["dsd"]["layerName"])
