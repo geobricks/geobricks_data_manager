@@ -25,7 +25,7 @@ class GeobricksTest(unittest.TestCase):
         },
         "dsd": {
             "contextSystem": "FENIX",
-            "datasoruce" : "geoserver",
+            "datasoruce": ["geoserver"],
             "workspace": "test",
             "layerName": "layer_test"
         }

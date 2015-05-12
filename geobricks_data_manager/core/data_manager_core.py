@@ -23,6 +23,7 @@ class DataManager():
 
         # uid separator if not defined
         if "folders" in config["settings"]:
+
             self.uid_separator = config["settings"]["folders"]["workspace_layer_separator"] if "workspace_layer_separator" in config["settings"]["folders"] else ":"
 
         # TODO: add only stuff used by MetadataManager?
@@ -103,7 +104,10 @@ class DataManager():
                     defaultStyle = metadata_def["dsd"]["defaultStyle"]
                 except Exception: pass
                 geoserver_def = translate_from_metadata_to_geoserver(layername, title, metadata_def["dsd"]["workspace"], None, defaultStyle, abstact)
-                log.info(geoserver_def)
+                log.info(self.geoserver_manager)
+                print self.geoserver_manager.gs_master
+                print self.geoserver_manager.gs_master.username
+                print self.geoserver_manager.gs_master.password
                 self.geoserver_manager.publish_coveragestore(file_path, geoserver_def, overwrite)
                 log.info("Geoserver published")
 
@@ -254,7 +258,7 @@ class DataManager():
         try:
             # Datasource type (geoserver, storage)
             if "datasources" not in metadata_def["dsd"]:
-                metadata_def["dsd"]["datasources"] = "storage"
+                metadata_def["dsd"]["datasources"] = ["storage"]
 
             # sanitize the layername. "layerName" has to be set
             metadata_def["dsd"]["layerName"] = sanitize_name(metadata_def["dsd"]["layerName"])
