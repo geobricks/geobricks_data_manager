@@ -12,9 +12,9 @@ log = logger(__file__)
 
 class DataManager():
 
-    metadata_manager = None
-    geoserver_manager = None
-    storage_manager = None
+    # metadata_manager = None
+    # geoserver_manager = None
+    # storage_manager = None
 
     def __init__(self, config):
 
